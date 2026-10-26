@@ -29,6 +29,7 @@ const {
   DEFAULT_DOCUMENT_ID,
   SESSION_COOKIE_NAME,
   SESSION_TTL_MS,
+  buildSessionCookieOptions,
   MAX_FILE_SIZE_BYTES,
   MAX_TEXT_LENGTH,
   MAX_DOCS_PER_SESSION,
@@ -698,7 +699,7 @@ test("CORS allows only configured origins and sends credentials", async () => {
   }
 });
 
-test("session cookie is HttpOnly and SameSite=Lax", async () => {
+test("session cookie is HttpOnly and SameSite=Lax outside production", async () => {
   const server = await startServer();
   try {
     const a = newClient();
@@ -711,6 +712,19 @@ test("session cookie is HttpOnly and SameSite=Lax", async () => {
   } finally {
     await stopServer(server);
   }
+});
+
+test("production session cookie is SameSite=None and Secure", () => {
+  const production = buildSessionCookieOptions(true);
+  assert.strictEqual(production.httpOnly, true);
+  assert.strictEqual(production.sameSite, "none");
+  assert.strictEqual(production.secure, true);
+  assert.strictEqual(production.maxAge, SESSION_TTL_MS);
+  assert.strictEqual(production.path, "/");
+
+  const development = buildSessionCookieOptions(false);
+  assert.strictEqual(development.sameSite, "lax");
+  assert.strictEqual(development.secure, false);
 });
 
 // ---------- Internal token ----------

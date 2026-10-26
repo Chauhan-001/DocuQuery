@@ -1,4 +1,5 @@
 
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -376,3 +377,13 @@ def answer(request: AnswerRequest):
             status_code=500,
             detail="Answer generation failed. Check the service logs.",
         ) from exc
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=int(os.getenv("PORT", "8000")),
+    )

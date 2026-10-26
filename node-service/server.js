@@ -17,6 +17,8 @@ const SESSION_TTL_MS = Number(process.env.SESSION_TTL_MS) || 24 * 60 * 60 * 1000
 const SESSION_COOKIE_NAME = "dq_sid";
 const DEV_INTERNAL_TOKEN = "dev-docuquery-internal-token";
 const DEFAULT_DOCUMENT_ID = "rag-content";
+// Repo-relative by default. Keep the Render Node service root at the repository
+// root so the sibling python-service sample is included, or set this explicitly.
 const DEFAULT_DOCUMENT_PATH = process.env.DEFAULT_DOCUMENT_PATH ||
   path.resolve(__dirname, "../python-service/rag-content.pdf");
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -29,6 +31,20 @@ const ANSWER_RATE_LIMIT = Number(process.env.ANSWER_RATE_LIMIT) || 20;
 const ANSWER_RATE_WINDOW_MS = 60 * 1000;
 const SEARCH_RATE_LIMIT = Number(process.env.SEARCH_RATE_LIMIT) || 60;
 const SEARCH_RATE_WINDOW_MS = 60 * 1000;
+
+function buildSessionCookieOptions(isProduction) {
+  return {
+    httpOnly: true,
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
+    maxAge: SESSION_TTL_MS,
+    path: "/",
+  };
+}
+
+if (IS_PRODUCTION) {
+  app.set("trust proxy", 1);
+}
 
 function resolveSessionSecret() {
   const secret = process.env.SESSION_SECRET;
@@ -90,13 +106,7 @@ app.use(session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: IS_PRODUCTION,
-    maxAge: SESSION_TTL_MS,
-    path: "/",
-  },
+  cookie: buildSessionCookieOptions(IS_PRODUCTION),
 }));
 
 app.use(express.json({ limit: "1mb" }));
@@ -878,6 +888,8 @@ module.exports = {
   DEFAULT_DOCUMENT_ID,
   SESSION_COOKIE_NAME,
   SESSION_TTL_MS,
+  buildSessionCookieOptions,
+  DEFAULT_DOCUMENT_PATH,
   MAX_FILE_SIZE_BYTES,
   MAX_TEXT_LENGTH,
   MAX_DOCS_PER_SESSION,
