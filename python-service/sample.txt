@@ -1,0 +1,9 @@
+
+FastAPI is a Python framework used to build APIs.
+It uses Python type hints and Pydantic for request validation.
+
+Qdrant is a vector database that stores vectors and supports similarity search.
+Semantic search retrieves information based on meaning rather than exact keyword matches.
+
+Retrieval-Augmented Generation, or RAG, retrieves relevant information and supplies it to a language model.
+This helps the model generate answers grounded in retrieved evidence.
